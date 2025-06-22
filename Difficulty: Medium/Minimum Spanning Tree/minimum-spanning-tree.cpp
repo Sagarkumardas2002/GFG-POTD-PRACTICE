@@ -1,45 +1,70 @@
+// DSU structure
+class DisjointSet {
+public:
+    vector<int> parent, rank;
+
+    DisjointSet(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+        for(int i = 0; i < n; i++)
+            parent[i] = i;
+    }
+
+    int findUPar(int node) {
+        if (parent[node] == node)
+            return node;
+        return parent[node] = findUPar(parent[node]); // Path compression
+    }
+
+    void unionByRank(int u, int v) {
+        int pu = findUPar(u);
+        int pv = findUPar(v);
+
+        if (pu == pv) return;
+
+        if (rank[pu] < rank[pv]) {
+            parent[pu] = pv;
+        } else if (rank[pv] < rank[pu]) {
+            parent[pv] = pu;
+        } else {
+            parent[pv] = pu;
+            rank[pu]++;
+        }
+    }
+};
 
 class Solution {
-    typedef pair<int,int>P;
-  public:
+public:
     int spanningTree(int V, vector<vector<int>> adj[]) {
-        
-        // Min-heap to always pick the edge with the smallest weight
-        priority_queue<P, vector<P>, greater<P>> pq;
-        
-        pq.push({0,0});// Start with node 0 and weight 0
+        vector<pair<int, pair<int, int>>> edges;
 
-        vector<bool>inMST(V,false); // Track nodes already included in MST
-        
-        int totalWeight =0; // Store the total weight of MST
-        
-        while(!pq.empty()){
-            auto p=pq.top();    
-            pq.pop();
-            
-            int weight=p.first;
-            int node=p.second;
-            
-            if(inMST[node]==true) continue; // If the node is already in MST, skip it
-            
-            // Include the node in MST and add the edge weight
-            inMST[node]=true;
-            totalWeight +=weight;
-            
-            
-              // Check all adjacent nodes of the current node
-            for(auto &edge:adj[node]){
-                int neighborNode =edge[0];
-                int neighborWeight =edge[1];
-                
-                // If adjacent node is not in MST, push it to the heap
-                if(inMST[neighborNode]==false){
-                    pq.push({neighborWeight ,neighborNode});
-                }
+        // Convert adjacency list to edge list
+        for (int i = 0; i < V; i++) {
+            for (auto it : adj[i]) {
+                int adjNode = it[0];
+                int wt = it[1];
+                int node = i;
+                if (node < adjNode) // Avoid duplicate edges
+                    edges.push_back({wt, {node, adjNode}});
             }
         }
-        
-        return totalWeight ;
-        
+
+        sort(edges.begin(), edges.end()); // Sort edges by weight
+
+        DisjointSet ds(V);
+        int mstWt = 0;
+
+        for (auto it : edges) {
+            int wt = it.first;
+            int u = it.second.first;
+            int v = it.second.second;
+
+            if (ds.findUPar(u) != ds.findUPar(v)) {
+                mstWt += wt;
+                ds.unionByRank(u, v);
+            }
+        }
+
+        return mstWt;
     }
 };
