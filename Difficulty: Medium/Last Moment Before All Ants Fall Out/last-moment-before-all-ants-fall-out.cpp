@@ -1,13 +1,18 @@
 class Solution {
   public:
     int getLastMoment(int n, vector<int>& left, vector<int>& right) {
-         int maxTime = 0;
+        int lastTime = 0;
+
+        // Ants moving left: time = position
         for (int pos : left) {
-            maxTime = max(maxTime, pos);        // time to fall off left
+            lastTime = max(lastTime, pos);
         }
+
+        // Ants moving right: time = n - position
         for (int pos : right) {
-            maxTime = max(maxTime, n - pos);    // time to fall off right
+            lastTime = max(lastTime, n - pos);
         }
-        return maxTime;
+
+        return lastTime;
     }
 };
