@@ -1,46 +1,49 @@
 class Solution {
   public:
-    string smallestWindow(string &s, string &p) {
-        if (s.size() < p.size()) return "";
-
-        vector<int> target(26, 0), window(26, 0);
-        for (char c : p) target[c - 'a']++;
-
-        int required = 0;
-        for (int i = 0; i < 26; i++) {
-            if (target[i] > 0) required++;
+    string minWindow(string &s, string &p) {
+        
+        unordered_map<char,int> freq;
+        unordered_set<char> st;
+        
+        for(char c : p){
+            freq[c]++;
+            st.insert(c);
         }
-
-        int formed = 0;
-        int l = 0, r = 0;
-        int minLen = INT_MAX, startIndex = -1;
-
-        while (r < s.size()) {
-            int idx = s[r] - 'a';
-            window[idx]++;
-
-            if (target[idx] > 0 && window[idx] == target[idx]) {
-                formed++;
+        
+        int left = 0;
+        int count = p.size();
+        int minLen = INT_MAX;
+        int startIndex = -1;
+        
+        for(int right = 0; right < s.size(); right++){
+            
+            if(st.count(s[right])){
+                if(freq[s[right]] > 0)
+                    count--;
+                
+                freq[s[right]]--;
             }
-
-            // Try to shrink window from left
-            while (l <= r && formed == required) {
-                if (r - l + 1 < minLen) {
-                    minLen = r - l + 1;
-                    startIndex = l;
+            
+            while(count == 0){
+                
+                if(right - left + 1 < minLen){
+                    minLen = right - left + 1;
+                    startIndex = left;
                 }
-
-                int leftIdx = s[l] - 'a';
-                window[leftIdx]--;
-                if (target[leftIdx] > 0 && window[leftIdx] < target[leftIdx]) {
-                    formed--;
+                
+                if(st.count(s[left])){
+                    freq[s[left]]++;
+                    
+                    if(freq[s[left]] > 0)
+                        count++;
                 }
-                l++;
+                
+                left++;
             }
-
-            r++;
         }
-
-        return (minLen == INT_MAX) ? "" : s.substr(startIndex, minLen);
+        
+        if(startIndex == -1) return "";
+        
+        return s.substr(startIndex, minLen);
     }
 };
